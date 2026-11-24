@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Optima-MCP — Stop Letting LLMs Guess Your Math</title>
+  <meta name="description" content="Universal, zero-hallucination Neuro-Symbolic Decision Intelligence MCP Server powered by HiGHS (MILP/LP) and Google OR-Tools (CP-SAT / VRP). Free & Open-Source (MIT)." />
+  <meta property="og:title" content="Optima-MCP — Stop Letting LLMs Guess Your Math" />
+  <meta property="og:description" content="Universal, Zero-Hallucination Operations Research & Decision Intelligence MCP Server for Claude, Antigravity, Cursor, and any AI Agent." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://1proo.github.io/optima-mcp/" />
+
+  <!-- Fonts: Space Grotesk, Inter, JetBrains Mono, and Cairo (Arabic) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#060911',
+            surface: '#0C1222',
+            emeraldNeon: '#00E599',
+            cyanNeon: '#38BDF8',
+            amberSolver: '#F59E0B',
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'Cairo', 'sans-serif'],
+            sans: ['Inter', 'Cairo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      background-color: #060911;
+      color: #E2E8F0;
+      font-family: 'Inter', 'Cairo', sans-serif;
+      overflow-x: hidden;
+    }
+    html[lang="ar"] body,
+    html[lang="ar"] h1,
+    html[lang="ar"] h2,
+    html[lang="ar"] h3,
+    html[lang="ar"] h4 {
+      font-family: 'Cairo', 'Inter', sans-serif;
+    }
+    h1, h2, h3, .font-display {
+      font-family: 'Space Grotesk', 'Cairo', sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Subtle architectural grid background */
+    .bg-grid {
+      background-size: 48px 48px;
+      background-image:
+        linear-gradient(to right, rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    }
+
+    /* Glassmorphism panels */
+    .glass {
+      background: rgba(12, 18, 34, 0.68);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .glass-hover:hover {
+      border-color: rgba(0, 229, 153, 0.4);
+      box-shadow: 0 12px 40px -12px rgba(0, 229, 153, 0.16);
+      transform: translateY(-2px);
+    }
+
+    /* Neon gradient text */
+    .text-gradient {
+      background: linear-gradient(135deg, #00E599 0%, #38BDF8 55%, #A78BFA 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Animated flow connector pulse */
+    @keyframes pulseFlow {
+      0%, 100% { opacity: 0.45; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.12); }
+    }
+    .flow-arrow {
+      animation: pulseFlow 2.2s ease-in-out infinite;
+    }
+    html[dir="rtl"] .flip-rtl {
+      transform: scaleX(-1);
+    }
+
+    /* Reveal-on-scroll animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Optima highlight column in comparison matrix */
+    .optima-col {
+      background: linear-gradient(180deg, rgba(0, 229, 153, 0.12) 0%, rgba(56, 189, 248, 0.06) 100%);
+      border-inline: 1px solid rgba(0, 229, 153, 0.32);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #060911; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+  </style>
+</head>
+<body class="bg-obsidian bg-grid text-slate-200 antialiased selection:bg-emeraldNeon/30 selection:text-emeraldNeon">
+
+  <!-- Ambient Glow Orbs -->
+  <div class="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+    <div class="absolute -top-32 start-1/4 h-[420px] w-[420px] rounded-full bg-emeraldNeon/10 blur-[120px]"></div>
+    <div class="absolute top-1/3 -end-24 h-[380px] w-[380px] rounded-full bg-cyanNeon/10 blur-[120px]"></div>
+    <div class="absolute bottom-0 start-1/3 h-[340px] w-[340px] rounded-full bg-indigo-500/10 blur-[120px]"></div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- NAVBAR                                                              -->
+  <!-- =================================================================== -->
+  <header class="sticky top-0 z-50 border-b border-slate-800/70 bg-obsidian/80 backdrop-blur-xl">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
+      <!-- Brand -->
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emeraldNeon to-cyanNeon text-obsidian shadow-lg shadow-emeraldNeon/20 transition-transform group-hover:scale-105">
+          <i data-lucide="zap" class="h-5 w-5 fill-obsidian stroke-obsidian"></i>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-display text-lg font-bold tracking-tight text-white">Optima-MCP</span>
+          <span class="hidden sm:inline-block rounded-full border border-emeraldNeon/30 bg-emeraldNeon/10 px-2 py-0.5 font-mono text-[11px] font-medium text-emeraldNeon">v0.1.0</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <a href="#how-it-works" class="hover:text-emeraldNeon transition-colors" data-i18n="nav_how">How It Works</a>
+        <a href="#capabilities" class="hover:text-emeraldNeon transition-colors" data-i18n="nav_solvers">Solvers &amp; Connectors</a>
+        <a href="#comparison" class="hover:text-emeraldNeon transition-colors" data-i18n="nav_compare">Compare</a>
+        <a href="#install" class="hover:text-emeraldNeon transition-colors" data-i18n="nav_install">Quick Install</a>
+        <a href="#use-cases" class="hover:text-emeraldNeon transition-colors" data-i18n="nav_cases">Use Cases</a>
+      </nav>
+
+      <!-- Actions: Language Toggle + GitHub + Mobile Menu -->
+      <div class="flex items-center gap-2.5">
+        <button
+          id="langToggle"
+          type="button"
+          aria-label="Toggle Language"
+          class="flex items-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-900/80 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-emeraldNeon/50 hover:text-emeraldNeon transition-all cursor-pointer"
+        >
+          <i data-lucide="globe" class="h-3.5 w-3.5 text-emeraldNeon"></i>
+          <span id="langToggleLabel">العربية</span>
+        </button>
+
+        <a
+          href="https://github.com/1PROO/optima-mcp"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hidden sm:inline-flex items-center gap-2 rounded-lg border border-slate-700/80 bg-slate-900/80 px-3.5 py-1.5 text-xs font-semibold text-white hover:border-cyanNeon/60 hover:bg-slate-800 transition-all"
+        >
+          <i data-lucide="github" class="h-4 w-4"></i>
+          <span data-i18n="nav_github">GitHub</span>
+        </a>
+
+        <button
+          id="mobileMenuBtn"
+          type="button"
+          aria-label="Open Navigation"
+          class="md:hidden rounded-lg border border-slate-700/80 bg-slate-900/80 p-2 text-slate-300 hover:text-white"
+        >
+          <i data-lucide="menu" class="h-5 w-5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Menu Drawer -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-slate-800 bg-obsidian/95 px-4 py-4 space-y-2.5 text-sm font-medium">
+      <a href="#how-it-works" class="block py-1.5 text-slate-300 hover:text-emeraldNeon" data-i18n="nav_how">How It Works</a>
+      <a href="#capabilities" class="block py-1.5 text-slate-300 hover:text-emeraldNeon" data-i18n="nav_solvers">Solvers &amp; Connectors</a>
+      <a href="#comparison" class="block py-1.5 text-slate-300 hover:text-emeraldNeon" data-i18n="nav_compare">Compare</a>
+      <a href="#install" class="block py-1.5 text-slate-300 hover:text-emeraldNeon" data-i18n="nav_install">Quick Install</a>
+      <a href="#use-cases" class="block py-1.5 text-slate-300 hover:text-emeraldNeon" data-i18n="nav_cases">Use Cases</a>
+      <a href="https://github.com/1PROO/optima-mcp" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 pt-2 text-emeraldNeon">
+        <i data-lucide="github" class="h-4 w-4"></i>
+        <span>github.com/1PROO/optima-mcp</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <!-- =================================================================== -->
+    <!-- 1. HERO SECTION                                                     -->
+    <!-- =================================================================== -->
+    <section class="relative pt-16 pb-20 sm:pt-24 sm:pb-28">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid items-center gap-12 lg:grid-cols-12">
+          <!-- Hero Left -->
+          <div class="lg:col-span-7 space-y-7">
+            <!-- Status Pills -->
+            <div class="inline-flex flex-wrap items-center gap-2 rounded-full border border-emeraldNeon/30 bg-emeraldNeon/10 px-3.5 py-1.5 text-xs font-medium text-emeraldNeon">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emeraldNeon opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emeraldNeon"></span>
+              </span>
+              <span data-i18n="hero_badge">Open Source (MIT) • Python 3.11+ • MCP Compatible • HiGHS + OR-Tools</span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="font-display text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.12]">
+              <span data-i18n="hero_title_1">Stop Letting LLMs</span>
+              <span class="block text-gradient mt-1" data-i18n="hero_title_2">Guess Your Math.</span>
+            </h1>
+
+            <!-- Subheadline -->
+            <p class="max-w-2xl text-base sm:text-lg leading-relaxed text-slate-300" data-i18n="hero_sub">
+              <strong class="text-white">Optima-MCP</strong> is a universal, zero-hallucination <strong class="text-emeraldNeon">Neuro-Symbolic Decision Intelligence MCP Server</strong> for Claude, Antigravity, Cursor, and any AI Agent. It streams your full data locally into industrial solvers — <strong class="text-white">HiGHS (MILP/LP)</strong> &amp; <strong class="text-white">Google OR-Tools (CP-SAT / VRP)</strong> — delivering provably optimal decisions in milliseconds with zero raw data sent to the cloud.
+            </p>
+
+            <!-- Primary CTAs -->
+            <div class="flex flex-wrap items-center gap-4 pt-1">
+              <a
+                href="#install"
+                class="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-emeraldNeon to-cyanNeon px-6 py-3.5 text-sm font-bold text-obsidian shadow-lg shadow-emeraldNeon/25 hover:brightness-110 transition-all"
+              >
+                <i data-lucide="terminal" class="h-4 w-4"></i>
+                <span data-i18n="cta_install">Install in 10 Seconds</span>
+              </a>
+              <a
+                href="https://github.com/1PROO/optima-mcp"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2.5 rounded-xl border border-slate-700 bg-slate-900/70 px-6 py-3.5 text-sm font-semibold text-white hover:border-slate-500 hover:bg-slate-800/80 transition-all"
+              >
+                <i data-lucide="github" class="h-4 w-4"></i>
+                <span data-i18n="cta_github">View on GitHub</span>
+              </a>
+            </div>
+
+            <!-- Executive Metric Strip -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+              <div class="glass rounded-xl p-3.5">
+                <div class="font-mono text-lg font-bold text-emeraldNeon">100%</div>
+                <div class="text-xs text-slate-400 mt-0.5" data-i18n="kpi_optimal">Provably Optimal</div>
+              </div>
+              <div class="glass rounded-xl p-3.5">
+                <div class="font-mono text-lg font-bold text-cyanNeon">100K+</div>
+                <div class="text-xs text-slate-400 mt-0.5" data-i18n="kpi_scale">Variables in ms</div>
+              </div>
+              <div class="glass rounded-xl p-3.5">
+                <div class="font-mono text-lg font-bold text-white" dir="ltr">3 Rows</div>
+                <div class="text-xs text-slate-400 mt-0.5" data-i18n="kpi_privacy">Max LLM Preview</div>
+              </div>
+              <div class="glass rounded-xl p-3.5">
+                <div class="font-mono text-lg font-bold text-amberSolver" dir="ltr">$0 MIT</div>
+                <div class="text-xs text-slate-400 mt-0.5" data-i18n="kpi_cost">Free &amp; Open-Source</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hero Right: Live Deterministic Solver Terminal Card -->
+          <div class="lg:col-span-5">
+            <div class="glass rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border-slate-700/60">
+              <!-- Window Header -->
+              <div class="flex items-center justify-between border-b border-slate-800 bg-slate-950/90 px-4 py-3" dir="ltr">
+                <div class="flex items-center gap-2">
+                  <span class="h-3 w-3 rounded-full bg-rose-500/80"></span>
+                  <span class="h-3 w-3 rounded-full bg-amber-400/80"></span>
+                  <span class="h-3 w-3 rounded-full bg-emeraldNeon/80"></span>
+                </div>
+                <span class="font-mono text-xs text-slate-400">optima-mcp :: solve_procurement</span>
+                <span class="rounded bg-emeraldNeon/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-emeraldNeon">HiGHS MILP</span>
+              </div>
+
+              <!-- Terminal Content -->
+              <div class="p-5 font-mono text-xs sm:text-[13px] leading-relaxed space-y-3 bg-slate-950/50" dir="ltr">
+                <div class="text-slate-400">
+                  <span class="text-cyanNeon">$</span> uvx --from git+https://github.com/1PROO/optima-mcp optima-mcp
+                </div>
+                <div class="rounded-lg border border-amberSolver/30 bg-amberSolver/10 p-3 text-amber-200">
+                  <div class="flex items-center gap-2 font-semibold text-amberSolver">
+                    <i data-lucide="shield-alert" class="h-4 w-4 shrink-0"></i>
+                    <span>dry_run_validate → 1 Warning Caught</span>
+                  </div>
+                  <p class="mt-1 text-[11px] text-amber-100/80">
+                    NEGATIVE_MARGIN_TRAP: <span class="text-white">PROMO-FRESH-1</span> (cost $2.50 &ge; price $2.00)
+                  </p>
+                </div>
+                <pre class="overflow-x-auto text-slate-300"><code>{
+  <span class="text-cyanNeon">"status"</span>: <span class="text-emeraldNeon">"Optimal"</span>,
+  <span class="text-cyanNeon">"solver_used"</span>: <span class="text-amberSolver">"HiGHS"</span>,
+  <span class="text-cyanNeon">"solve_time_ms"</span>: <span class="text-purple-300">50.28</span>,
+  <span class="text-cyanNeon">"summary"</span>: {
+    <span class="text-cyanNeon">"total_spend"</span>: <span class="text-emeraldNeon">23209.10</span>,
+    <span class="text-cyanNeon">"budget_utilization_pct"</span>: <span class="text-emeraldNeon">46.42</span>,
+    <span class="text-cyanNeon">"storage_utilization_pct"</span>: <span class="text-emeraldNeon">100.0</span>,
+    <span class="text-cyanNeon">"expected_profit"</span>: <span class="text-emeraldNeon">18065.80</span>,
+    <span class="text-cyanNeon">"roi_pct"</span>: <span class="text-emeraldNeon">77.84</span>
+  },
+  <span class="text-cyanNeon">"audit_trail"</span>: { <span class="text-cyanNeon">"deterministic"</span>: <span class="text-emeraldNeon">true</span> }
+}</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 2. HOW IT WORKS (NEURO-SYMBOLIC ARCHITECTURE + 3-STEP PROTOCOL)     -->
+    <!-- =================================================================== -->
+    <section id="how-it-works" class="py-20 border-t border-slate-800/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto reveal">
+          <span class="inline-block rounded-full border border-cyanNeon/30 bg-cyanNeon/10 px-3 py-1 font-mono text-xs font-semibold text-cyanNeon" data-i18n="arch_kicker">NEURO-SYMBOLIC ARCHITECTURE</span>
+          <h2 class="mt-4 font-display text-3xl sm:text-4xl font-bold text-white" data-i18n="arch_title">
+            LLMs Understand Context. Solvers Guarantee Math.
+          </h2>
+          <p class="mt-3 text-slate-400 text-base sm:text-lg" data-i18n="arch_sub">
+            Optima-MCP separates language understanding from mathematical optimization so your AI agent never touches raw tables and never guesses a number.
+          </p>
+        </div>
+
+        <!-- Visual Flow Diagram -->
+        <div class="mt-14 reveal">
+          <div class="grid gap-4 lg:grid-cols-9 items-stretch">
+            <!-- Node 1: Data Sources -->
+            <div class="lg:col-span-2 glass glass-hover rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-cyanNeon border border-slate-700">
+                  <i data-lucide="database" class="h-5 w-5"></i>
+                </div>
+                <h3 class="mt-4 font-display font-bold text-white text-base" data-i18n="flow_1_title">Any Data Source</h3>
+                <p class="mt-1.5 text-xs text-slate-400 leading-relaxed" data-i18n="flow_1_desc">
+                  CSV, Excel, JSON, Parquet, SQL (Read-Only), Google Sheets, or Live REST APIs.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-[11px] text-cyanNeon" data-i18n="flow_1_tag">Full dataset stays local</div>
+            </div>
+
+            <!-- Arrow 1 -->
+            <div class="hidden lg:flex items-center justify-center text-emeraldNeon flow-arrow">
+              <i data-lucide="arrow-right" class="h-6 w-6 flip-rtl"></i>
+            </div>
+
+            <!-- Node 2: Optima-MCP Local Engine -->
+            <div class="lg:col-span-2 glass glass-hover rounded-2xl p-5 flex flex-col justify-between border-emeraldNeon/30">
+              <div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emeraldNeon/15 text-emeraldNeon border border-emeraldNeon/30">
+                  <i data-lucide="shield-check" class="h-5 w-5"></i>
+                </div>
+                <h3 class="mt-4 font-display font-bold text-white text-base" data-i18n="flow_2_title">Optima-MCP Local Engine</h3>
+                <p class="mt-1.5 text-xs text-slate-400 leading-relaxed" data-i18n="flow_2_desc">
+                  Connectors + Pydantic v2 Guard. Exposes ONLY schema, stats &amp; 3 sample rows to the LLM.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-[11px] text-emeraldNeon" data-i18n="flow_2_tag">Zero context flooding</div>
+            </div>
+
+            <!-- Arrow 2 -->
+            <div class="hidden lg:flex items-center justify-center text-cyanNeon flow-arrow">
+              <i data-lucide="arrow-left-right" class="h-6 w-6"></i>
+            </div>
+
+            <!-- Node 3: AI Agent -->
+            <div class="lg:col-span-1 glass glass-hover rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-300 border border-purple-400/30">
+                  <i data-lucide="bot" class="h-5 w-5"></i>
+                </div>
+                <h3 class="mt-4 font-display font-bold text-white text-sm" data-i18n="flow_3_title">AI Agent</h3>
+                <p class="mt-1.5 text-xs text-slate-400 leading-relaxed" data-i18n="flow_3_desc">
+                  Claude, Antigravity, or Cursor maps columns &amp; rules.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-[10px] text-purple-300" data-i18n="flow_3_tag">Adapter only</div>
+            </div>
+
+            <!-- Arrow 3 -->
+            <div class="hidden lg:flex items-center justify-center text-amberSolver flow-arrow">
+              <i data-lucide="arrow-right" class="h-6 w-6 flip-rtl"></i>
+            </div>
+
+            <!-- Node 4 & 5 combined into 2-col crisp solver + result -->
+            <div class="lg:col-span-2 glass glass-hover rounded-2xl p-5 flex flex-col justify-between border-amberSolver/30 bg-gradient-to-b from-slate-900/90 to-emeraldNeon/5">
+              <div>
+                <div class="flex items-center gap-2">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amberSolver/15 text-amberSolver border border-amberSolver/30">
+                    <i data-lucide="cpu" class="h-5 w-5"></i>
+                  </div>
+                  <span class="rounded-md bg-emeraldNeon/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-emeraldNeon">OPTIMAL</span>
+                </div>
+                <h3 class="mt-4 font-display font-bold text-white text-base" data-i18n="flow_4_title">HiGHS &amp; OR-Tools Solvers</h3>
+                <p class="mt-1.5 text-xs text-slate-300 leading-relaxed" data-i18n="flow_4_desc">
+                  Computes the 100% provably optimal plan, skipped opportunities &amp; full SHA-256 audit trail.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-slate-800 font-mono text-[11px] text-amberSolver" data-i18n="flow_4_tag">MILP / LP / CP-SAT / VRP</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strict 3-Step Safety Protocol -->
+        <div class="mt-12 glass rounded-2xl p-6 sm:p-8 border-emeraldNeon/25 reveal">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-800">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emeraldNeon/15 text-emeraldNeon">
+                <i data-lucide="lock" class="h-5 w-5"></i>
+              </div>
+              <div>
+                <h3 class="font-display text-xl font-bold text-white" data-i18n="proto_title">Strict 3-Step Safety Protocol</h3>
+                <p class="text-xs sm:text-sm text-slate-400" data-i18n="proto_sub">Enforced natively via SKILL.md and the optima://protocol/strict-rules MCP resource.</p>
+              </div>
+            </div>
+            <span class="self-start sm:self-center rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-emeraldNeon" dir="ltr">optima://protocol/strict-rules</span>
+          </div>
+
+          <div class="mt-6 grid gap-6 md:grid-cols-3">
+            <!-- Step 1 -->
+            <div class="relative rounded-xl bg-slate-900/70 border border-slate-800 p-5">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-cyanNeon">STEP 01</span>
+                <code class="rounded bg-cyanNeon/10 px-2 py-0.5 text-xs text-cyanNeon" dir="ltr">inspect_source</code>
+              </div>
+              <h4 class="mt-3 font-display font-bold text-white" data-i18n="step1_title">Zero-Flood Schema Discovery</h4>
+              <p class="mt-1.5 text-sm text-slate-400" data-i18n="step1_desc">
+                Streams the dataset locally and returns ONLY column names, types, null counts, numeric min/max/mean, and at most 3 sample rows.
+              </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="relative rounded-xl bg-slate-900/70 border border-slate-800 p-5">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-amberSolver">STEP 02</span>
+                <code class="rounded bg-amberSolver/10 px-2 py-0.5 text-xs text-amberSolver" dir="ltr">dry_run_validate</code>
+              </div>
+              <h4 class="mt-3 font-display font-bold text-white" data-i18n="step2_title">Mandatory Pydantic &amp; Anomaly Guard</h4>
+              <p class="mt-1.5 text-sm text-slate-400" data-i18n="step2_desc">
+                Validates column mappings and flags negative-margin traps, carton-vs-unit mismatches, and storage or budget conflicts before computing.
+              </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="relative rounded-xl bg-slate-900/70 border border-slate-800 p-5">
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs font-bold text-emeraldNeon">STEP 03</span>
+                <code class="rounded bg-emeraldNeon/10 px-2 py-0.5 text-xs text-emeraldNeon" dir="ltr">solve_*</code>
+              </div>
+              <h4 class="mt-3 font-display font-bold text-white" data-i18n="step3_title">Deterministic Solve + Audit Trail</h4>
+              <p class="mt-1.5 text-sm text-slate-400" data-i18n="step3_desc">
+                Executes HiGHS or OR-Tools to output exact optimal plans, KPIs, skipped opportunities with mathematical reasons, and infeasibility diagnostics.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 3. ENTERPRISE-GRADE CAPABILITIES (SOLVERS & CONNECTORS)             -->
+    <!-- =================================================================== -->
+    <section id="capabilities" class="py-20 border-t border-slate-800/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <!-- Built-In Solvers Header -->
+        <div class="text-center max-w-3xl mx-auto reveal">
+          <span class="inline-block rounded-full border border-amberSolver/30 bg-amberSolver/10 px-3 py-1 font-mono text-xs font-semibold text-amberSolver" data-i18n="solvers_kicker">BUILT-IN MATHEMATICAL SOLVERS</span>
+          <h2 class="mt-4 font-display text-3xl sm:text-4xl font-bold text-white" data-i18n="solvers_title">
+            5 Industrial-Grade Optimization Engines
+          </h2>
+          <p class="mt-3 text-slate-400 text-base sm:text-lg" data-i18n="solvers_sub">
+            Powered by the world's fastest open-source solvers — HiGHS (MILP/LP) and Google OR-Tools (CP-SAT &amp; VRP).
+          </p>
+        </div>
+
+        <!-- 5 Solver Cards -->
+        <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3 reveal">
+          <!-- Solver 1: Procurement -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emeraldNeon/15 text-emeraldNeon">
+                  <i data-lucide="shopping-cart" class="h-5 w-5"></i>
+                </div>
+                <span class="rounded-full border border-emeraldNeon/30 bg-emeraldNeon/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-emeraldNeon">HiGHS MILP</span>
+              </div>
+              <h3 class="mt-4 font-mono text-base font-bold text-white" dir="ltr">solve_procurement</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="s_proc_desc">
+                Determines exactly what to buy, from which supplier, and how much — respecting cash budgets, warehouse/fridge space, MOQ, fixed shipping fees, and shelf life. Supports Maximize Profit, Minimize Cost, and Exact ROI.
+              </p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-300">
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Budget</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Storage</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">MOQ</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Shelf-Life</span>
+            </div>
+          </div>
+
+          <!-- Solver 2: Routing -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-cyanNeon/15 text-cyanNeon">
+                  <i data-lucide="truck" class="h-5 w-5"></i>
+                </div>
+                <span class="rounded-full border border-cyanNeon/30 bg-cyanNeon/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-cyanNeon">OR-Tools VRP</span>
+              </div>
+              <h3 class="mt-4 font-mono text-base font-bold text-white" dir="ltr">solve_routing</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="s_rout_desc">
+                Computes optimal delivery and field-service routes for vans, trucks, or technicians under vehicle load capacities, max route distances, and automatic Haversine km matrices or custom distance matrices.
+              </p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-300">
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">CVRP</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Haversine km</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Fleet Load %</span>
+            </div>
+          </div>
+
+          <!-- Solver 3: Scheduling -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-500/15 text-purple-300">
+                  <i data-lucide="calendar-clock" class="h-5 w-5"></i>
+                </div>
+                <span class="rounded-full border border-purple-400/30 bg-purple-500/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-purple-300">OR-Tools CP-SAT</span>
+              </div>
+              <h3 class="mt-4 font-mono text-base font-bold text-white" dir="ltr">solve_scheduling</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="s_sched_desc">
+                Builds fair, deterministic shift and workforce rosters matching peak headcount demand, mandatory skills per shift, employee unavailability, max shifts, and legal no-back-to-back rest rules.
+              </p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-300">
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Skills</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Rest Rules</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Fair Balance</span>
+            </div>
+          </div>
+
+          <!-- Solver 4: Allocation -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amberSolver/15 text-amberSolver">
+                  <i data-lucide="pie-chart" class="h-5 w-5"></i>
+                </div>
+                <span class="rounded-full border border-amberSolver/30 bg-amberSolver/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-amberSolver">HiGHS LP / MILP</span>
+              </div>
+              <h3 class="mt-4 font-mono text-base font-bold text-white" dir="ltr">solve_allocation</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="s_alloc_desc">
+                General-purpose linear and integer optimizer for capital allocation, retail shelf-space optimization, fuel/oil blending, and production mix planning with item bounds and category quotas.
+              </p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-300">
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Capital Mix</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">Category Quotas</span>
+              <span class="rounded bg-slate-800/90 px-2 py-0.5">LP / MILP</span>
+            </div>
+          </div>
+
+          <!-- Solver 5: What-If Scenarios (spans 2 cols on lg for visual symmetry) -->
+          <div class="glass glass-hover rounded-2xl p-6 md:col-span-2 flex flex-col justify-between border-cyanNeon/25 bg-gradient-to-br from-slate-900/80 to-cyanNeon/5">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emeraldNeon/20 to-cyanNeon/20 text-emeraldNeon">
+                  <i data-lucide="git-compare" class="h-5 w-5"></i>
+                </div>
+                <span class="rounded-full border border-cyanNeon/30 bg-cyanNeon/10 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-cyanNeon">Multi-Run Grid</span>
+              </div>
+              <h3 class="mt-4 font-mono text-base font-bold text-white" dir="ltr">run_what_if_scenarios</h3>
+              <p class="mt-2 text-sm text-slate-300 leading-relaxed" data-i18n="s_whatif_desc">
+                Instant side-by-side sensitivity analysis across Baseline + up to 5 named scenarios. Override constraints or scale cost/demand columns in memory to answer executive questions like: "What if my supplier raises prices by 8% or my budget drops by 20%?" — complete with exact KPI deltas.
+              </p>
+            </div>
+            <div class="mt-5 flex flex-wrap gap-2 text-[11px] font-mono text-cyanNeon">
+              <span class="rounded bg-cyanNeon/10 border border-cyanNeon/20 px-2.5 py-0.5">constraint_overrides</span>
+              <span class="rounded bg-cyanNeon/10 border border-cyanNeon/20 px-2.5 py-0.5">data_multipliers</span>
+              <span class="rounded bg-cyanNeon/10 border border-cyanNeon/20 px-2.5 py-0.5">KPI Comparison Table</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plug & Play Connectors -->
+        <div class="mt-20 reveal">
+          <div class="text-center max-w-3xl mx-auto">
+            <span class="inline-block rounded-full border border-emeraldNeon/30 bg-emeraldNeon/10 px-3 py-1 font-mono text-xs font-semibold text-emeraldNeon" data-i18n="conn_kicker">UNIVERSAL PLUG &amp; PLAY CONNECTORS</span>
+            <h3 class="mt-4 font-display text-2xl sm:text-3xl font-bold text-white" data-i18n="conn_title">
+              Connect Directly to Your Real Systems — Privately
+            </h3>
+          </div>
+
+          <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <!-- Connector 1 -->
+            <div class="glass glass-hover rounded-2xl p-5">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emeraldNeon/15 text-emeraldNeon">
+                <i data-lucide="file-spreadsheet" class="h-5 w-5"></i>
+              </div>
+              <h4 class="mt-4 font-display font-bold text-white" data-i18n="c_files_title">Spreadsheets &amp; Files</h4>
+              <p class="mt-1.5 font-mono text-xs text-cyanNeon" dir="ltr">.csv • .xlsx • .xls • .json • .parquet</p>
+              <p class="mt-2 text-xs text-slate-400 leading-relaxed" data-i18n="c_files_desc">
+                100% local in-memory Pandas reads with zero cloud upload or context bloat.
+              </p>
+            </div>
+
+            <!-- Connector 2 -->
+            <div class="glass glass-hover rounded-2xl p-5">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-cyanNeon/15 text-cyanNeon">
+                <i data-lucide="database" class="h-5 w-5"></i>
+              </div>
+              <h4 class="mt-4 font-display font-bold text-white" data-i18n="c_sql_title">SQL Databases</h4>
+              <p class="mt-1.5 font-mono text-xs text-cyanNeon" dir="ltr">SQLite • PostgreSQL • MySQL</p>
+              <p class="mt-2 text-xs text-slate-400 leading-relaxed" data-i18n="c_sql_desc">
+                Strict Read-Only SELECT/WITH security guard blocking all DDL/writes + local env: credentials.
+              </p>
+            </div>
+
+            <!-- Connector 3 -->
+            <div class="glass glass-hover rounded-2xl p-5">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amberSolver/15 text-amberSolver">
+                <i data-lucide="sheet" class="h-5 w-5"></i>
+              </div>
+              <h4 class="mt-4 font-display font-bold text-white" data-i18n="c_sheets_title">Google Sheets</h4>
+              <p class="mt-1.5 font-mono text-xs text-cyanNeon" dir="ltr">Auto /edit → CSV Export</p>
+              <p class="mt-2 text-xs text-slate-400 leading-relaxed" data-i18n="c_sheets_desc">
+                Paste any public Google Sheet link; Optima-MCP auto-transforms /edit URLs preserving sheet gid.
+              </p>
+            </div>
+
+            <!-- Connector 4 -->
+            <div class="glass glass-hover rounded-2xl p-5">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-300">
+                <i data-lucide="webhook" class="h-5 w-5"></i>
+              </div>
+              <h4 class="mt-4 font-display font-bold text-white" data-i18n="c_api_title">Live Systems &amp; ERPs</h4>
+              <p class="mt-1.5 font-mono text-xs text-cyanNeon" dir="ltr">REST API (GET / POST)</p>
+              <p class="mt-2 text-xs text-slate-400 leading-relaxed" data-i18n="c_api_desc">
+                Reads auth headers from local env: variables and flattens nested JSON via dot-notation data_path.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 4. COMPETITIVE COMPARISON TABLE (THE KEY DIFFERENTIATOR)            -->
+    <!-- =================================================================== -->
+    <section id="comparison" class="py-20 border-t border-slate-800/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto reveal">
+          <span class="inline-block rounded-full border border-emeraldNeon/30 bg-emeraldNeon/10 px-3 py-1 font-mono text-xs font-semibold text-emeraldNeon" data-i18n="cmp_kicker">ENTERPRISE MATH WITHOUT ENTERPRISE LOCK-IN</span>
+          <h2 class="mt-4 font-display text-3xl sm:text-4xl font-bold text-white" data-i18n="cmp_title">
+            Optima-MCP vs. Legacy Enterprise Suites &amp; Pure LLMs
+          </h2>
+          <p class="mt-3 text-slate-400 text-base sm:text-lg" data-i18n="cmp_sub">
+            The same rigorous Operations Research mathematics powering Fortune 500 supply chains — open-source, private, AI-native, and live in 10 seconds.
+          </p>
+        </div>
+
+        <div class="mt-12 glass rounded-2xl overflow-hidden shadow-2xl shadow-black/50 reveal">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[920px] border-collapse text-start text-sm">
+              <thead>
+                <tr class="border-b border-slate-800 bg-slate-950/90 text-xs uppercase tracking-wider text-slate-400">
+                  <th class="p-4 sm:p-5 text-start font-semibold w-48" data-i18n="cmp_dim">Dimension</th>
+                  <th class="p-4 sm:p-5 text-start optima-col">
+                    <div class="flex items-center gap-2 text-emeraldNeon font-bold text-sm normal-case">
+                      <i data-lucide="zap" class="h-4 w-4 fill-emeraldNeon"></i>
+                      <span>Optima-MCP</span>
+                    </div>
+                    <div class="mt-0.5 font-mono text-[10px] text-emeraldNeon/80 normal-case" data-i18n="cmp_optima_tag">Neuro-Symbolic MCP</div>
+                  </th>
+                  <th class="p-4 sm:p-5 text-start font-semibold text-slate-200">o9 Solutions</th>
+                  <th class="p-4 sm:p-5 text-start font-semibold text-slate-200">RELEX Solutions</th>
+                  <th class="p-4 sm:p-5 text-start font-semibold text-slate-200">Kinaxis</th>
+                  <th class="p-4 sm:p-5 text-start font-semibold text-slate-200">Makkook</th>
+                  <th class="p-4 sm:p-5 text-start font-semibold text-rose-300" data-i18n="cmp_llm">Pure LLMs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/80 text-xs sm:text-[13px]">
+                <!-- Row 1: Core Optimization -->
+                <tr class="hover:bg-slate-900/40 transition-colors">
+                  <td class="p-4 sm:p-5 font-semibold text-white" data-i18n="row_math">Core Optimization Scope</td>
+                  <td class="p-4 sm:p-5 optima-col text-emeraldNeon font-semibold" data-i18n="row_math_optima">
+                    Procurement, Routing (VRP), Scheduling (CP-SAT), Allocation &amp; What-If
+                  </td>
+                  <td class="p-4 sm:p-5 text-slate-300" data-i18n="row_math_ent1">IBP, Supply &amp; Demand Planning</td>
+                  <td class="p-4 sm:p-5 text-slate-300" data-i18n="row_math_ent2">Retail Forecasting, Space &amp; Replenishment</td>
+                  <td class="p-4 sm:p-5 text-slate-300" data-i18n="row_math_ent3">Concurrent Supply Chain &amp; S&amp;OP</td>
+                  <td class="p-4 sm:p-5 text-slate-300" data-i18n="row_math_ent4">Inventory, Procurement &amp; Forecasting</td>
+                  <td class="p-4 sm:p-5 text-rose-300/90" data-i18n="row_math_llm">Probabilistic text guesses (~30–60% accuracy)</td>
+                </tr>
+
+                <!-- Row 2: Cost & Licensing -->
+                <tr class="hover:bg-slate-900/40 transition-colors">
+                  <td class="p-4 sm:p-5 font-semibold text-white" data-i18n="row_cost">Cost &amp; Licensing</td>
+                  <td class="p-4 sm:p-5 optima-col font-bold text-emeraldNeon" data-i18n="row_cost_optima">
+                    $0 — Free &amp; Open-Source (MIT License)
+                  </td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_cost_high">$250K–$1M+ / yr enterprise license</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_cost_medhigh">$150K–$750K+ / yr SaaS contract</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_cost_high">$250K–$1M+ / yr enterprise license</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_cost_saas">Paid commercial SaaS subscription</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_cost_llm">High token bills (uploads full tables)</td>
+                </tr>
+
+                <!-- Row 3: Deployment Time -->
+                <tr class="hover:bg-slate-900/40 transition-colors">
+                  <td class="p-4 sm:p-5 font-semibold text-white" data-i18n="row_deploy">Deployment Time</td>
+                  <td class="p-4 sm:p-5 optima-col font-bold text-emeraldNeon" data-i18n="row_deploy_optima">
+                    10 seconds via uvx (Zero setup)
+                  </td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_deploy_long">6–18 months + consulting</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_deploy_med">6–12 months implementation</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_deploy_long">6–18 months + consulting</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_deploy_weeks">Weeks to months onboarding</td>
+                  <td class="p-4 sm:p-5 text-slate-300" data-i18n="row_deploy_llm">Instant, but breaks past ~100 rows</td>
+                </tr>
+
+                <!-- Row 4: Data Privacy -->
+                <tr class="hover:bg-slate-900/40 transition-colors">
+                  <td class="p-4 sm:p-5 font-semibold text-white" data-i18n="row_priv">Data Privacy</td>
+                  <td class="p-4 sm:p-5 optima-col font-semibold text-emeraldNeon" data-i18n="row_priv_optima">
+                    100% Local Execution (Zero raw data to cloud/LLM)
+                  </td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_priv_cloud">Vendor Cloud SaaS lock-in</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_priv_cloud">Vendor Cloud SaaS lock-in</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_priv_cloud">Vendor Cloud SaaS lock-in</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_priv_cloud">Vendor Cloud SaaS</td>
+                  <td class="p-4 sm:p-5 text-rose-300/90" data-i18n="row_priv_llm">Raw business data pasted to cloud LLM</td>
+                </tr>
+
+                <!-- Row 5: AI-Native Flexibility -->
+                <tr class="hover:bg-slate-900/40 transition-colors">
+                  <td class="p-4 sm:p-5 font-semibold text-white" data-i18n="row_flex">AI-Native Flexibility</td>
+                  <td class="p-4 sm:p-5 optima-col font-semibold text-emeraldNeon" data-i18n="row_flex_optima">
+                    Plugs into Claude / Antigravity / Cursor; adapts to any messy CSV/SQL/API
+                  </td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_flex_rigid">Rigid proprietary data model &amp; ETL</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_flex_rigid">Rigid ERP schema integration</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_flex_rigid">Rigid RapidResponse schema</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_flex_erp">ERP-coupled data connectors</td>
+                  <td class="p-4 sm:p-5 text-slate-300" data-i18n="row_flex_llm">Flexible chat, zero math guarantees</td>
+                </tr>
+
+                <!-- Row 6: Target Audience -->
+                <tr class="hover:bg-slate-900/40 transition-colors">
+                  <td class="p-4 sm:p-5 font-semibold text-white" data-i18n="row_target">Target Audience</td>
+                  <td class="p-4 sm:p-5 optima-col font-semibold text-emeraldNeon" data-i18n="row_target_optima">
+                    SMEs, Fuel Stations, Restaurants, Distributors &amp; Enterprises
+                  </td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_target_f500">Fortune 500 only</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_target_retail">Large Retail Enterprises</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_target_f500">Fortune 500 only</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_target_mid">Mid-to-Large Commerce</td>
+                  <td class="p-4 sm:p-5 text-slate-400" data-i18n="row_target_llm">General Q&amp;A (unsafe for Ops math)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 5. 10-SECOND QUICK INSTALL (INTERACTIVE TABS + ONE-CLICK COPY)      -->
+    <!-- =================================================================== -->
+    <section id="install" class="py-20 border-t border-slate-800/60">
+      <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center reveal">
+          <span class="inline-block rounded-full border border-emeraldNeon/30 bg-emeraldNeon/10 px-3 py-1 font-mono text-xs font-semibold text-emeraldNeon" data-i18n="inst_kicker">ZERO CLONING • ZERO SETUP</span>
+          <h2 class="mt-4 font-display text-3xl sm:text-4xl font-bold text-white" data-i18n="inst_title">
+            Install in 10 Seconds
+          </h2>
+          <p class="mt-3 text-slate-400 text-base sm:text-lg" data-i18n="inst_sub">
+            Runs directly from GitHub via <code class="text-emeraldNeon">uvx</code>. Works with Claude Desktop, Antigravity, Cursor, Windsurf, and any MCP client.
+          </p>
+        </div>
+
+        <!-- Tabbed Code Card -->
+        <div class="mt-10 glass rounded-2xl overflow-hidden border-slate-700/70 shadow-2xl reveal">
+          <!-- Tab Buttons -->
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 bg-slate-950/90 px-4 pt-3">
+            <div class="flex flex-wrap gap-1" role="tablist">
+              <button
+                type="button"
+                data-tab="tab-agent"
+                class="install-tab rounded-t-lg px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-emeraldNeon text-emeraldNeon bg-slate-900/80 transition-colors cursor-pointer"
+                data-i18n="tab_1"
+              >
+                Option 1: Agent Auto-Install
+              </button>
+              <button
+                type="button"
+                data-tab="tab-json"
+                class="install-tab rounded-t-lg px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                data-i18n="tab_2"
+              >
+                Option 2: uvx MCP Config (.mcp.json)
+              </button>
+              <button
+                type="button"
+                data-tab="tab-try"
+                class="install-tab rounded-t-lg px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                data-i18n="tab_3"
+              >
+                Try Sample Dataset
+              </button>
+            </div>
+          </div>
+
+          <!-- Tab Panel 1: Agent Auto-Install Prompt -->
+          <div id="tab-agent" class="install-panel p-6 space-y-4">
+            <p class="text-sm text-slate-300" data-i18n="tab1_desc">
+              Copy and paste this single prompt into <strong class="text-white">Antigravity, Claude Code, Cursor, or Windsurf</strong>:
+            </p>
+            <div class="relative rounded-xl border border-slate-800 bg-slate-950 p-4 sm:p-5" dir="ltr">
+              <button
+                type="button"
+                data-copy-target="code-agent"
+                class="copy-btn absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-emeraldNeon hover:text-emeraldNeon transition-all cursor-pointer"
+              >
+                <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                <span data-i18n="btn_copy">Copy</span>
+              </button>
+              <pre id="code-agent" class="overflow-x-auto pe-20 font-mono text-xs sm:text-sm text-emeraldNeon whitespace-pre-wrap">Install the MCP plugin and skill from https://github.com/1PROO/optima-mcp following its Agent Auto-Install block.</pre>
+            </div>
+          </div>
+
+          <!-- Tab Panel 2: Manual uvx JSON Config -->
+          <div id="tab-json" class="install-panel hidden p-6 space-y-4">
+            <p class="text-sm text-slate-300" data-i18n="tab2_desc">
+              Add this to <code class="text-cyanNeon">claude_desktop_config.json</code> or <code class="text-cyanNeon">.mcp.json</code> (requires <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener noreferrer" class="text-emeraldNeon underline">uv</a>):
+            </p>
+            <div class="relative rounded-xl border border-slate-800 bg-slate-950 p-4 sm:p-5" dir="ltr">
+              <button
+                type="button"
+                data-copy-target="code-json"
+                class="copy-btn absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-emeraldNeon hover:text-emeraldNeon transition-all cursor-pointer"
+              >
+                <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                <span data-i18n="btn_copy">Copy</span>
+              </button>
+              <pre id="code-json" class="overflow-x-auto pe-20 font-mono text-xs sm:text-sm text-slate-200">{
+  "mcpServers": {
+    "optima-mcp": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/1PROO/optima-mcp",
+        "optima-mcp"
+      ]
+    }
+  }
+}</pre>
+            </div>
+          </div>
+
+          <!-- Tab Panel 3: Sample Prompt -->
+          <div id="tab-try" class="install-panel hidden p-6 space-y-4">
+            <p class="text-sm text-slate-300" data-i18n="tab3_desc">
+              Test immediately with the bundled fuel station dataset in <code class="text-cyanNeon">examples/fuel_and_oils_station.csv</code>:
+            </p>
+            <div class="relative rounded-xl border border-slate-800 bg-slate-950 p-4 sm:p-5" dir="ltr">
+              <button
+                type="button"
+                data-copy-target="code-try"
+                class="copy-btn absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-emeraldNeon hover:text-emeraldNeon transition-all cursor-pointer"
+              >
+                <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                <span data-i18n="btn_copy">Copy</span>
+              </button>
+              <pre id="code-try" class="overflow-x-auto pe-20 font-mono text-xs sm:text-sm text-cyanNeon whitespace-pre-wrap">Inspect examples/fuel_and_oils_station.csv, validate the mapping, and give me the optimal purchasing plan for a $50,000 budget and 1,200 storage units.</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 6. REAL-WORLD USE CASES                                             -->
+    <!-- =================================================================== -->
+    <section id="use-cases" class="py-20 border-t border-slate-800/60">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto reveal">
+          <span class="inline-block rounded-full border border-purple-400/30 bg-purple-500/10 px-3 py-1 font-mono text-xs font-semibold text-purple-300" data-i18n="uc_kicker">NOT JUST FOR FACTORIES</span>
+          <h2 class="mt-4 font-display text-3xl sm:text-4xl font-bold text-white" data-i18n="uc_title">
+            Built for Real-World Operations Everywhere
+          </h2>
+          <p class="mt-3 text-slate-400 text-base sm:text-lg" data-i18n="uc_sub">
+            From neighborhood fuel stations and restaurants to multi-warehouse distributors and e-commerce brands.
+          </p>
+        </div>
+
+        <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 reveal">
+          <!-- Use Case 1 -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amberSolver/15 text-amberSolver">
+                <i data-lucide="fuel" class="h-6 w-6"></i>
+              </div>
+              <h3 class="mt-4 font-display text-lg font-bold text-white" data-i18n="uc1_title">Fuel Stations &amp; Lubricants</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="uc1_desc">
+                Optimize underground tank replenishment timing and lubricant SKU mix to maximize profit per dollar without dead stock or negative-margin promos.
+              </p>
+            </div>
+            <a href="https://github.com/1PROO/optima-mcp/blob/main/examples/fuel_and_oils_station.csv" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex items-center gap-1.5 font-mono text-xs text-emeraldNeon hover:underline" dir="ltr">
+              <span>fuel_and_oils_station.csv</span>
+              <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+            </a>
+          </div>
+
+          <!-- Use Case 2 -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/15 text-rose-300">
+                <i data-lucide="utensils" class="h-6 w-6"></i>
+              </div>
+              <h3 class="mt-4 font-display text-lg font-bold text-white" data-i18n="uc2_title">Restaurants &amp; Food Distribution</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="uc2_desc">
+                Daily purchasing for perishable ingredients under strict fridge space, shelf-life limits, supplier minimums (MOQ), and fixed delivery fees.
+              </p>
+            </div>
+            <span class="mt-5 inline-block font-mono text-xs text-slate-400" dir="ltr">solve_procurement + shelf_life</span>
+          </div>
+
+          <!-- Use Case 3 -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-cyanNeon/15 text-cyanNeon">
+                <i data-lucide="map-pin" class="h-6 w-6"></i>
+              </div>
+              <h3 class="mt-4 font-display text-lg font-bold text-white" data-i18n="uc3_title">Delivery &amp; Field Service</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="uc3_desc">
+                Route sales reps, delivery vans, or maintenance technicians across stops with optimal vehicle load utilization to slash fuel spend.
+              </p>
+            </div>
+            <a href="https://github.com/1PROO/optima-mcp/blob/main/examples/fleet_delivery_orders.json" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex items-center gap-1.5 font-mono text-xs text-cyanNeon hover:underline" dir="ltr">
+              <span>fleet_delivery_orders.json</span>
+              <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+            </a>
+          </div>
+
+          <!-- Use Case 4 -->
+          <div class="glass glass-hover rounded-2xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emeraldNeon/15 text-emeraldNeon">
+                <i data-lucide="shopping-bag" class="h-6 w-6"></i>
+              </div>
+              <h3 class="mt-4 font-display text-lg font-bold text-white" data-i18n="uc4_title">Retail, E-Commerce &amp; Shifts</h3>
+              <p class="mt-2 text-sm text-slate-400 leading-relaxed" data-i18n="uc4_desc">
+                Allocate limited working capital across hundreds of SKUs for peak ROI and generate fair, skill-compliant 24/7 team shift schedules.
+              </p>
+            </div>
+            <a href="https://github.com/1PROO/optima-mcp/blob/main/examples/staff_shifts_sample.csv" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex items-center gap-1.5 font-mono text-xs text-purple-300 hover:underline" dir="ltr">
+              <span>staff_shifts_sample.csv</span>
+              <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =================================================================== -->
+  <!-- 7. FOOTER                                                           -->
+  <!-- =================================================================== -->
+  <footer class="border-t border-slate-800/80 bg-slate-950/70 py-12">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-start">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emeraldNeon to-cyanNeon text-obsidian">
+            <i data-lucide="zap" class="h-4 w-4 fill-obsidian stroke-obsidian"></i>
+          </div>
+          <div>
+            <div class="font-display font-bold text-white">Optima-MCP</div>
+            <div class="text-xs text-slate-400" data-i18n="footer_credit">
+              Built with deterministic precision by <a href="https://github.com/1PROO" target="_blank" rel="noopener noreferrer" class="text-emeraldNeon hover:underline font-semibold">1PROO (Ahmed Akram)</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="https://github.com/1PROO/optima-mcp/blob/main/LICENSE"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 rounded-full border border-emeraldNeon/30 bg-emeraldNeon/10 px-3 py-1 font-mono text-xs font-medium text-emeraldNeon hover:bg-emeraldNeon/20 transition-colors"
+          >
+            <i data-lucide="scale" class="h-3.5 w-3.5"></i>
+            <span>MIT License</span>
+          </a>
+          <a
+            href="https://github.com/1PROO/optima-mcp/blob/main/SKILL.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-3 py-1 font-mono text-xs text-slate-300 hover:border-cyanNeon hover:text-cyanNeon transition-colors"
+          >
+            <i data-lucide="file-code" class="h-3.5 w-3.5"></i>
+            <span>SKILL.md</span>
+          </a>
+          <a
+            href="https://github.com/1PROO/optima-mcp"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900 px-3 py-1 font-mono text-xs text-white hover:border-emeraldNeon hover:text-emeraldNeon transition-colors"
+          >
+            <i data-lucide="github" class="h-3.5 w-3.5"></i>
+            <span>1PROO/optima-mcp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =================================================================== -->
+  <!-- INTERACTIVE SCRIPT: I18N (EN/AR + RTL), TABS, COPY, REVEAL          -->
+  <!-- =================================================================== -->
+  <script>
+    const translations = {
+      en: {
+        nav_how: "How It Works",
+        nav_solvers: "Solvers & Connectors",
+        nav_compare: "Compare",
+        nav_install: "Quick Install",
+        nav_cases: "Use Cases",
+        nav_github: "GitHub",
+        hero_badge: "Open Source (MIT) • Python 3.11+ • MCP Compatible • HiGHS + OR-Tools",
+        hero_title_1: "Stop Letting LLMs",
+        hero_title_2: "Guess Your Math.",
+        hero_sub: '<strong class="text-white">Optima-MCP</strong> is a universal, zero-hallucination <strong class="text-emeraldNeon">Neuro-Symbolic Decision Intelligence MCP Server</strong> for Claude, Antigravity, Cursor, and any AI Agent. It streams your full data locally into industrial solvers — <strong class="text-white">HiGHS (MILP/LP)</strong> &amp; <strong class="text-white">Google OR-Tools (CP-SAT / VRP)</strong> — delivering provably optimal decisions in milliseconds with zero raw data sent to the cloud.',
+        cta_install: "Install in 10 Seconds",
+        cta_github: "View on GitHub",
+        kpi_optimal: "Provably Optimal",
+        kpi_scale: "Variables in ms",
+        kpi_privacy: "Max LLM Preview",
+        kpi_cost: "Free & Open-Source",
+        arch_kicker: "NEURO-SYMBOLIC ARCHITECTURE",
+        arch_title: "LLMs Understand Context. Solvers Guarantee Math.",
+        arch_sub: "Optima-MCP separates language understanding from mathematical optimization so your AI agent never touches raw tables and never guesses a number.",
+        flow_1_title: "Any Data Source",
+        flow_1_desc: "CSV, Excel, JSON, Parquet, SQL (Read-Only), Google Sheets, or Live REST APIs.",
+        flow_1_tag: "Full dataset stays local",
+        flow_2_title: "Optima-MCP Local Engine",
+        flow_2_desc: "Connectors + Pydantic v2 Guard. Exposes ONLY schema, stats & 3 sample rows to the LLM.",
+        flow_2_tag: "Zero context flooding",
+        flow_3_title: "AI Agent",
+        flow_3_desc: "Claude, Antigravity, or Cursor maps columns & rules.",
+        flow_3_tag: "Adapter only",
+        flow_4_title: "HiGHS & OR-Tools Solvers",
+        flow_4_desc: "Computes the 100% provably optimal plan, skipped opportunities & full SHA-256 audit trail.",
+        flow_4_tag: "MILP / LP / CP-SAT / VRP",
+        proto_title: "Strict 3-Step Safety Protocol",
+        proto_sub: "Enforced natively via SKILL.md and the optima://protocol/strict-rules MCP resource.",
+        step1_title: "Zero-Flood Schema Discovery",
+        step1_desc: "Streams the dataset locally and returns ONLY column names, types, null counts, numeric min/max/mean, and at most 3 sample rows.",
+        step2_title: "Mandatory Pydantic & Anomaly Guard",
+        step2_desc: "Validates column mappings and flags negative-margin traps, carton-vs-unit mismatches, and storage or budget conflicts before computing.",
+        step3_title: "Deterministic Solve + Audit Trail",
+        step3_desc: "Executes HiGHS or OR-Tools to output exact optimal plans, KPIs, skipped opportunities with mathematical reasons, and infeasibility diagnostics.",
+        solvers_kicker: "BUILT-IN MATHEMATICAL SOLVERS",
+        solvers_title: "5 Industrial-Grade Optimization Engines",
+        solvers_sub: "Powered by the world's fastest open-source solvers — HiGHS (MILP/LP) and Google OR-Tools (CP-SAT & VRP).",
+        s_proc_desc: "Determines exactly what to buy, from which supplier, and how much — respecting cash budgets, warehouse/fridge space, MOQ, fixed shipping fees, and shelf life. Supports Maximize Profit, Minimize Cost, and Exact ROI.",
+        s_rout_desc: "Computes optimal delivery and field-service routes for vans, trucks, or technicians under vehicle load capacities, max route distances, and automatic Haversine km matrices or custom distance matrices.",
+        s_sched_desc: "Builds fair, deterministic shift and workforce rosters matching peak headcount demand, mandatory skills per shift, employee unavailability, max shifts, and legal no-back-to-back rest rules.",
+        s_alloc_desc: "General-purpose linear and integer optimizer for capital allocation, retail shelf-space optimization, fuel/oil blending, and production mix planning with item bounds and category quotas.",
+        s_whatif_desc: 'Instant side-by-side sensitivity analysis across Baseline + up to 5 named scenarios. Override constraints or scale cost/demand columns in memory to answer executive questions like: "What if my supplier raises prices by 8% or my budget drops by 20%?" — complete with exact KPI deltas.',
+        conn_kicker: "UNIVERSAL PLUG & PLAY CONNECTORS",
+        conn_title: "Connect Directly to Your Real Systems — Privately",
+        c_files_title: "Spreadsheets & Files",
+        c_files_desc: "100% local in-memory Pandas reads with zero cloud upload or context bloat.",
+        c_sql_title: "SQL Databases",
+        c_sql_desc: "Strict Read-Only SELECT/WITH security guard blocking all DDL/writes + local env: credentials.",
+        c_sheets_title: "Google Sheets",
+        c_sheets_desc: "Paste any public Google Sheet link; Optima-MCP auto-transforms /edit URLs preserving sheet gid.",
+        c_api_title: "Live Systems & ERPs",
+        c_api_desc: "Reads auth headers from local env: variables and flattens nested JSON via dot-notation data_path.",
+        cmp_kicker: "ENTERPRISE MATH WITHOUT ENTERPRISE LOCK-IN",
+        cmp_title: "Optima-MCP vs. Legacy Enterprise Suites & Pure LLMs",
+        cmp_sub: "The same rigorous Operations Research mathematics powering Fortune 500 supply chains — open-source, private, AI-native, and live in 10 seconds.",
+        cmp_dim: "Dimension",
+        cmp_optima_tag: "Neuro-Symbolic MCP",
+        cmp_llm: "Pure LLMs",
+        row_math: "Core Optimization Scope",
+        row_math_optima: "Procurement, Routing (VRP), Scheduling (CP-SAT), Allocation & What-If",
+        row_math_ent1: "IBP, Supply & Demand Planning",
+        row_math_ent2: "Retail Forecasting, Space & Replenishment",
+        row_math_ent3: "Concurrent Supply Chain & S&OP",
+        row_math_ent4: "Inventory, Procurement & Forecasting",
+        row_math_llm: "Probabilistic text guesses (~30–60% accuracy)",
+        row_cost: "Cost & Licensing",
+        row_cost_optima: "$0 — Free & Open-Source (MIT License)",
+        row_cost_high: "$250K–$1M+ / yr enterprise license",
+        row_cost_medhigh: "$150K–$750K+ / yr SaaS contract",
+        row_cost_saas: "Paid commercial SaaS subscription",
+        row_cost_llm: "High token bills (uploads full tables)",
+        row_deploy: "Deployment Time",
+        row_deploy_optima: "10 seconds via uvx (Zero setup)",
+        row_deploy_long: "6–18 months + consulting",
+        row_deploy_med: "6–12 months implementation",
+        row_deploy_weeks: "Weeks to months onboarding",
+        row_deploy_llm: "Instant, but breaks past ~100 rows",
+        row_priv: "Data Privacy",
+        row_priv_optima: "100% Local Execution (Zero raw data to cloud/LLM)",
+        row_priv_cloud: "Vendor Cloud SaaS lock-in",
+        row_priv_llm: "Raw business data pasted to cloud LLM",
+        row_flex: "AI-Native Flexibility",
+        row_flex_optima: "Plugs into Claude / Antigravity / Cursor; adapts to any messy CSV/SQL/API",
+        row_flex_rigid: "Rigid proprietary data model & ETL",
+        row_flex_erp: "ERP-coupled data connectors",
+        row_flex_llm: "Flexible chat, zero math guarantees",
+        row_target: "Target Audience",
+        row_target_optima: "SMEs, Fuel Stations, Restaurants, Distributors & Enterprises",
+        row_target_f500: "Fortune 500 only",
+        row_target_retail: "Large Retail Enterprises",
+        row_target_mid: "Mid-to-Large Commerce",
+        row_target_llm: "General Q&A (unsafe for Ops math)",
+        inst_kicker: "ZERO CLONING • ZERO SETUP",
+        inst_title: "Install in 10 Seconds",
+        inst_sub: 'Runs directly from GitHub via <code class="text-emeraldNeon">uvx</code>. Works with Claude Desktop, Antigravity, Cursor, Windsurf, and any MCP client.',
+        tab_1: "Option 1: Agent Auto-Install",
+        tab_2: "Option 2: uvx MCP Config (.mcp.json)",
+        tab_3: "Try Sample Dataset",
+        tab1_desc: 'Copy and paste this single prompt into <strong class="text-white">Antigravity, Claude Code, Cursor, or Windsurf</strong>:',
+        tab2_desc: 'Add this to <code class="text-cyanNeon">claude_desktop_config.json</code> or <code class="text-cyanNeon">.mcp.json</code> (requires <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener noreferrer" class="text-emeraldNeon underline">uv</a>):',
+        tab3_desc: 'Test immediately with the bundled fuel station dataset in <code class="text-cyanNeon">examples/fuel_and_oils_station.csv</code>:',
+        btn_copy: "Copy",
+        btn_copied: "Copied!",
+        uc_kicker: "NOT JUST FOR FACTORIES",
+        uc_title: "Built for Real-World Operations Everywhere",
+        uc_sub: "From neighborhood fuel stations and restaurants to multi-warehouse distributors and e-commerce brands.",
+        uc1_title: "Fuel Stations & Lubricants",
+        uc1_desc: "Optimize underground tank replenishment timing and lubricant SKU mix to maximize profit per dollar without dead stock or negative-margin promos.",
+        uc2_title: "Restaurants & Food Distribution",
+        uc2_desc: "Daily purchasing for perishable ingredients under strict fridge space, shelf-life limits, supplier minimums (MOQ), and fixed delivery fees.",
+        uc3_title: "Delivery & Field Service",
+        uc3_desc: "Route sales reps, delivery vans, or maintenance technicians across stops with optimal vehicle load utilization to slash fuel spend.",
+        uc4_title: "Retail, E-Commerce & Shifts",
+        uc4_desc: "Allocate limited working capital across hundreds of SKUs for peak ROI and generate fair, skill-compliant 24/7 team shift schedules.",
+        footer_credit: 'Built with deterministic precision by <a href="https://github.com/1PROO" target="_blank" rel="noopener noreferrer" class="text-emeraldNeon hover:underline font-semibold">1PROO (Ahmed Akram)</a>'
+      },
+      ar: {
+        nav_how: "كيف يعمل",
+        nav_solvers: "المحركات والموصلات",
+        nav_compare: "المقارنة",
+        nav_install: "التثبيت السريع",
+        nav_cases: "حالات الاستخدام",
+        nav_github: "جيت هب",
+        hero_badge: "مفتوح المصدر (MIT) • Python 3.11+ • متوافق مع MCP • HiGHS + OR-Tools",
+        hero_title_1: "توقّف عن ترك الذكاء الاصطناعي",
+        hero_title_2: "يخمّن حساباتك.",
+        hero_sub: '<strong class="text-white">Optima-MCP</strong> هو خادم MCP عالمي لـ <strong class="text-emeraldNeon">ذكاء القرار الهجين (Neuro-Symbolic) بدون هلوسة</strong> يعمل مع Claude و Antigravity و Cursor وأي وكيل ذكاء اصطناعي. يقرأ بياناتك محلياً بالكامل داخل محركات بحوث عمليات صناعية — <strong class="text-white">HiGHS (MILP/LP)</strong> و <strong class="text-white">Google OR-Tools (CP-SAT / VRP)</strong> — ليمنحك القرار الأمثل رياضياً خلال أجزاء من الثانية دون إرسال أرقامك الخام للسحابة.',
+        cta_install: "ثبّت في 10 ثوانٍ",
+        cta_github: "عرض على GitHub",
+        kpi_optimal: "أمثلية مثبتة رياضياً",
+        kpi_scale: "متغير خلال مللي ثانية",
+        kpi_privacy: "أقصى معاينة للـ LLM",
+        kpi_cost: "مجاني ومفتوح المصدر",
+        arch_kicker: "المعمارية الهجينة (NEURO-SYMBOLIC)",
+        arch_title: "الذكاء الاصطناعي يفهم السياق. والمحركات الرياضية تضمن الدقة.",
+        arch_sub: "يفصل Optima-MCP بين فهم اللغة والحساب الرياضي الدقيق، فلا يرى النموذج اللغوي جداولك الخام ولا يخمّن أي رقم أبداً.",
+        flow_1_title: "أي مصدر بيانات",
+        flow_1_desc: "ملفات CSV و Excel و JSON و Parquet، وقواعد SQL (قراءة فقط)، وجداول Google Sheets، أو واجهات REST APIs.",
+        flow_1_tag: "البيانات الكاملة تبقى محلية",
+        flow_2_title: "محرك Optima-MCP المحلي",
+        flow_2_desc: "موصلات بيانات + حارس Pydantic v2. يكشف فقط أسماء الأعمدة والإحصاءات و 3 صفوف معاينة للـ LLM.",
+        flow_2_tag: "صفر تضخم لسياق المحادثة",
+        flow_3_title: "وكيل الذكاء الاصطناعي",
+        flow_3_desc: "Claude أو Antigravity أو Cursor يربط الأعمدة ويجمع قواعد عملك.",
+        flow_3_tag: "وسيط ذكي فقط",
+        flow_4_title: "محركات HiGHS و OR-Tools",
+        flow_4_desc: "تحسب الخطة المثلى بنسبة 100% مع الفرص المستبعدة وأسبابها وسجل تدقيق كامل ببصمة SHA-256.",
+        flow_4_tag: "MILP / LP / CP-SAT / VRP",
+        proto_title: "بروتوكول الأمان الصارم من 3 خطوات",
+        proto_sub: "مفروض تلقائياً عبر ملف SKILL.md ومورد MCP المدمج optima://protocol/strict-rules.",
+        step1_title: "استكشاف البنية دون إغراق السياق",
+        step1_desc: "يقرأ البيانات محلياً ويعيد فقط أسماء الأعمدة وأنواعها والقيم الفارغة وملخص الأرقام وبحد أقصى 3 صفوف معاينة.",
+        step2_title: "فحص إلزامي للشذوذ والهوامش",
+        step2_desc: "يتحقق من تطابق الأعمدة وينبّه لفخاخ الهامش السالب، واختلاف وحدات القياس (كرتونة مقابل قطعة)، وتعارض الميزانية أو المخزن قبل الحل.",
+        step3_title: "حل حتمي + سجل تدقيق وتشخيص",
+        step3_desc: "يشغّل HiGHS أو OR-Tools لإخراج خطة مثلى دقيقة ومؤشرات أداء وأسباب استبعاد الأصناف وتشخيص القيود المتعارضة عند الاستحالة.",
+        solvers_kicker: "المحركات الرياضية المدمجة",
+        solvers_title: "5 محركات تحسين صناعية جاهزة للاستخدام",
+        solvers_sub: "تعتمد على أسرع محركات بحوث العمليات مفتوحة المصدر في العالم — HiGHS و Google OR-Tools.",
+        s_proc_desc: "يحدد بدقة ماذا تشتري، ومن أي مورد، وبأي كمية — مع احترام الميزانية، وسعة المخزن أو الثلاجة، والحد الأدنى للطلب (MOQ)، وتكاليف الشحن الثابتة، وصلاحية المنتجات. يدعم تعظيم الربح وتقليل التكلفة وأقصى عائد ROI.",
+        s_rout_desc: "يحسب أقصر وأمثل مسارات التوصيل والخدمة الميدانية للأساطيل والفنيين مع مراعاة حمولات المركبات والحد الأقصى للمسافة وحساب مصفوفة مسافات Haversine تلقائياً.",
+        s_sched_desc: "يبني جداول ورديات عادلة وحتمية للموظفين تغطي ساعات الذروة والمهارات المطلوبة لكل وردية، وتراعي الإجازات والحد الأقصى للورديات وقواعد الراحة القانونية دون ورديات متتالية.",
+        s_alloc_desc: "محسن عام للبرمجة الخطية والعددية لتوزيع رأس المال، ومساحات الأرفف، وخلط الوقود والزيوت، ومزيج الإنتاج مع احترام الحدود الدنيا والعليا وحصص الفئات.",
+        s_whatif_desc: 'تحليل حساسية فوري جنباً إلى جنب بين الوضع الأساسي وحتى 5 سيناريوهات بديلة. اختبر تغيّر الميزانية أو ارتفاع أسعار الموردين 8% في الذاكرة مباشرة مع جدول فروقات KPIs دقيق.',
+        conn_kicker: "موصلات بيانات فورية (PLUG & PLAY)",
+        conn_title: "اتصل بأنظمتك الحقيقية مباشرة — وبخصوصية كاملة",
+        c_files_title: "الجداول والملفات",
+        c_files_desc: "قراءة محلية 100% في الذاكرة عبر Pandas دون رفع أي ملف للسحابة.",
+        c_sql_title: "قواعد بيانات SQL",
+        c_sql_desc: "حارس أمان صارم للقراءة فقط (SELECT/WITH) يمنع أي تعديل أو حذف، مع قراءة كلمات المرور من env: محلياً.",
+        c_sheets_title: "جداول Google Sheets",
+        c_sheets_desc: "الصق أي رابط Google Sheet عام ليحوّله تلقائياً إلى CSV مع الحفاظ على رقم الورقة gid.",
+        c_api_title: "الأنظمة الحية و ERPs",
+        c_api_desc: "يقرأ ترويسات المصادقة من متغيرات env: المحلية ويفكك بيانات JSON المتداخلة تلقائياً عبر data_path.",
+        cmp_kicker: "رياضيات المؤسسات الكبرى بدون قيودها وتكاليفها",
+        cmp_title: "Optima-MCP مقارنةً بالأنظمة المؤسسية العملاقة والـ LLMs التقليدية",
+        cmp_sub: "نفس رياضيات بحوث العمليات الصارمة التي تدير سلاسل إمداد شركات Fortune 500 — ولكن مجانية، محلية، متوافقة مع الذكاء الاصطناعي، وجاهزة في 10 ثوانٍ.",
+        cmp_dim: "وجه المقارنة",
+        cmp_optima_tag: "ذكاء قرار هجين MCP",
+        cmp_llm: "LLMs وحدها",
+        row_math: "نطاق التحسين الرياضي",
+        row_math_optima: "المشتريات، التوجيه (VRP)، الورديات (CP-SAT)، التخصيص، وسيناريوهات ماذا لو",
+        row_math_ent1: "تخطيط الإمداد والطلب المؤسسي (IBP)",
+        row_math_ent2: "توقعات التجزئة والمساحات وإعادة التزويد",
+        row_math_ent3: "تخطيط سلاسل الإمداد المتزامن S&OP",
+        row_math_ent4: "المخزون والمشتريات وتوقعات الطلب",
+        row_math_llm: "تخمينات احتمالية (دقة 30%–60% مع القيود)",
+        row_cost: "التكلفة والترخيص",
+        row_cost_optima: "0 دولار — مجاني ومفتوح المصدر (رخصة MIT)",
+        row_cost_high: "250 ألف – +1 مليون دولار سنوياً",
+        row_cost_medhigh: "150 ألف – +750 ألف دولار سنوياً",
+        row_cost_saas: "اشتراك تجاري مدفوع (SaaS)",
+        row_cost_llm: "تكلفة توكنز ضخمة (رفع الجداول بالكامل)",
+        row_deploy: "زمن التشغيل والنشر",
+        row_deploy_optima: "10 ثوانٍ عبر uvx (بدون إعداد معقّد)",
+        row_deploy_long: "6 إلى 18 شهراً + شركات استشارية",
+        row_deploy_med: "6 إلى 12 شهراً للتنفيذ",
+        row_deploy_weeks: "أسابيع إلى أشهر للتهيئة والربط",
+        row_deploy_llm: "فوري، لكنه ينهار بعد ~100 صف",
+        row_priv: "خصوصية البيانات",
+        row_priv_optima: "تشغيل محلي 100% (لا تُرسل بيانات خام للسحابة)",
+        row_priv_cloud: "ارتباط بسحابة المزوّد (Cloud Lock-in)",
+        row_priv_llm: "إرسال أرقام عملك الحساسة لسحابة الـ LLM",
+        row_flex: "المرونة مع الذكاء الاصطناعي",
+        row_flex_optima: "يتكامل مباشرة مع Claude / Antigravity / Cursor ويتكيّف مع أي ملف أو قاعدة بيانات",
+        row_flex_rigid: "هياكل بيانات جامدة وعمليات ETL معقدة",
+        row_flex_erp: "موصلات مرتبطة بهياكل ERP محددة",
+        row_flex_llm: "محادثة مرنة بدون أي ضمانات رياضية",
+        row_target: "الفئة المستهدفة",
+        row_target_optima: "الشركات الصغيرة والمتوسطة، محطات الوقود، المطاعم، الموزعون، والمؤسسات الكبرى",
+        row_target_f500: "شركات Fortune 500 فقط",
+        row_target_retail: "سلاسل التجزئة العملاقة",
+        row_target_mid: "الشركات التجارية المتوسطة والكبيرة",
+        row_target_llm: "أسئلة عامة (غير آمن لحسابات التشغيل)",
+        inst_kicker: "بدون استنساخ • بدون تعقيد",
+        inst_title: "ثبّت في 10 ثوانٍ",
+        inst_sub: 'يعمل مباشرة من GitHub عبر <code class="text-emeraldNeon">uvx</code>. متوافق مع Claude Desktop و Antigravity و Cursor و Windsurf وأي عميل MCP.',
+        tab_1: "الخيار 1: التثبيت التلقائي عبر الوكيل",
+        tab_2: "الخيار 2: إعداد uvx اليدوي (.mcp.json)",
+        tab_3: "جرّب ملف البيانات المرفق",
+        tab1_desc: 'انسخ هذا الأمر وأرسله مباشرة إلى <strong class="text-white">Antigravity أو Claude Code أو Cursor أو Windsurf</strong>:',
+        tab2_desc: 'أضف هذا المقطع إلى <code class="text-cyanNeon">claude_desktop_config.json</code> أو <code class="text-cyanNeon">.mcp.json</code> (يتطلب <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener noreferrer" class="text-emeraldNeon underline">uv</a>):',
+        tab3_desc: 'اختبره فوراً باستخدام بيانات محطة الوقود والزيوت المرفقة في <code class="text-cyanNeon">examples/fuel_and_oils_station.csv</code>:',
+        btn_copy: "نسخ",
+        btn_copied: "تم النسخ!",
+        uc_kicker: "ليس للمصانع فقط",
+        uc_title: "مصمّم لعمليات الأعمال الحقيقية في كل قطاع",
+        uc_sub: "من محطات الوقود والمطاعم المحلية إلى شركات التوزيع متعددة المستودعات ومتاجر التجارة الإلكترونية.",
+        uc1_title: "محطات الوقود والزيوت",
+        uc1_desc: "تحسين توقيت تعبئة الخزانات وتشكيلة الزيوت والملحقات لتعظيم الربح لكل دولار دون مخزون راكد أو عروض خاسرة.",
+        uc2_title: "المطاعم وتوزيع الأغذية",
+        uc2_desc: "تخطيط المشتريات اليومية للمكونات سريعة التلف ضمن سعة الثلاجات وفترة الصلاحية والحد الأدنى للموردين وتكلفة التوصيل.",
+        uc3_title: "التوصيل والخدمة الميدانية",
+        uc3_desc: "توجيه مناديب المبيعات وشاحنات التوزيع وفنيي الصيانة بأفضل استغلال للحمولة لتقليص استهلاك الوقود والتأخيرات.",
+        uc4_title: "التجزئة والتجارة الإلكترونية والورديات",
+        uc4_desc: "توزيع رأس المال المحدود على مئات الأصناف لأعلى عائد ROI، وبناء جداول ورديات عادلة تغطي جميع المهارات 24/7.",
+        footer_credit: 'طُوّر بدقة حتمية بواسطة <a href="https://github.com/1PROO" target="_blank" rel="noopener noreferrer" class="text-emeraldNeon hover:underline font-semibold">1PROO (أحمد أكرم)</a>'
+      }
+    };
+
+    let currentLang = localStorage.getItem('optima_lang') || 'en';
+
+    function applyLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('optima_lang', lang);
+      const htmlEl = document.documentElement;
+      htmlEl.lang = lang;
+      htmlEl.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+      const dict = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key] !== undefined) {
+          el.innerHTML = dict[key];
+        }
+      });
+
+      const toggleLabel = document.getElementById('langToggleLabel');
+      if (toggleLabel) {
+        toggleLabel.textContent = lang === 'en' ? 'العربية' : 'English';
+      }
+    }
+
+    document.getElementById('langToggle').addEventListener('click', () => {
+      applyLanguage(currentLang === 'en' ? 'ar' : 'en');
+    });
+
+    // Mobile nav toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+    mobileMenu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+    });
+
+    // Install tabs
+    const tabBtns = document.querySelectorAll('.install-tab');
+    const tabPanels = document.querySelectorAll('.install-panel');
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-tab');
+        tabBtns.forEach((b) => {
+          b.classList.remove('border-emeraldNeon', 'text-emeraldNeon', 'bg-slate-900/80');
+          b.classList.add('border-transparent', 'text-slate-400');
+        });
+        btn.classList.add('border-emeraldNeon', 'text-emeraldNeon', 'bg-slate-900/80');
+        btn.classList.remove('border-transparent', 'text-slate-400');
+
+        tabPanels.forEach((panel) => {
+          panel.classList.toggle('hidden', panel.id !== target);
+        });
+      });
+    });
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const targetId = btn.getAttribute('data-copy-target');
+        const text = document.getElementById(targetId).textContent.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          const span = btn.querySelector('span');
+          const origKey = span.getAttribute('data-i18n');
+          span.textContent = translations[currentLang].btn_copied;
+          btn.classList.add('border-emeraldNeon', 'text-emeraldNeon');
+          setTimeout(() => {
+            span.textContent = translations[currentLang][origKey];
+            btn.classList.remove('border-emeraldNeon', 'text-emeraldNeon');
+          }, 1800);
+        } catch (_) {
+          /* Fallback ignored if clipboard blocked */
+        }
+      });
+    });
+
+    // Scroll reveal observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+    // Initialize icons and saved language
+    lucide.createIcons();
+    applyLanguage(currentLang);
+  </script>
+</body>
+</html>
