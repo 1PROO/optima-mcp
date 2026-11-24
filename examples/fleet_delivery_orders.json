@@ -1,0 +1,112 @@
+{
+  "scenario": "Greater Cairo Lubricant & Fuel Station Daily Distribution",
+  "depot": {
+    "stop_id": "DEPOT-CAIRO-HUB",
+    "name": "Cairo Industrial Logistics Hub",
+    "lat": 30.0444,
+    "lon": 31.2357
+  },
+  "vehicles": [
+    {
+      "vehicle_id": "VAN-1",
+      "type": "Box Van 650kg",
+      "capacity": 650
+    },
+    {
+      "vehicle_id": "VAN-2",
+      "type": "Box Van 650kg",
+      "capacity": 650
+    },
+    {
+      "vehicle_id": "VAN-3",
+      "type": "Compact Van 550kg",
+      "capacity": 550
+    }
+  ],
+  "stops": [
+    {
+      "stop_id": "ST-01",
+      "customer": "Nasr City Service Station",
+      "lat": 30.0561,
+      "lon": 31.3301,
+      "demand_kg": 145
+    },
+    {
+      "stop_id": "ST-02",
+      "customer": "Heliopolis Auto Lube Center",
+      "lat": 30.0911,
+      "lon": 31.3422,
+      "demand_kg": 120
+    },
+    {
+      "stop_id": "ST-03",
+      "customer": "Maadi Corniche Fuel Stop",
+      "lat": 29.9602,
+      "lon": 31.2569,
+      "demand_kg": 160
+    },
+    {
+      "stop_id": "ST-04",
+      "customer": "New Cairo 5th Settlement Hub",
+      "lat": 30.0074,
+      "lon": 31.4913,
+      "demand_kg": 180
+    },
+    {
+      "stop_id": "ST-05",
+      "customer": "Giza Haram Express Oils",
+      "lat": 29.9922,
+      "lon": 31.1667,
+      "demand_kg": 135
+    },
+    {
+      "stop_id": "ST-06",
+      "customer": "Dokki Quick Service Garage",
+      "lat": 30.0385,
+      "lon": 31.2119,
+      "demand_kg": 95
+    },
+    {
+      "stop_id": "ST-07",
+      "customer": "Mohandessin Fleet Depot",
+      "lat": 30.0609,
+      "lon": 31.2001,
+      "demand_kg": 110
+    },
+    {
+      "stop_id": "ST-08",
+      "customer": "6th of October Central Station",
+      "lat": 29.9668,
+      "lon": 30.9428,
+      "demand_kg": 155
+    },
+    {
+      "stop_id": "ST-09",
+      "customer": "Sheikh Zayed Auto Care",
+      "lat": 30.0449,
+      "lon": 30.9852,
+      "demand_kg": 115
+    },
+    {
+      "stop_id": "ST-10",
+      "customer": "Shubra Industrial Lube Point",
+      "lat": 30.1123,
+      "lon": 31.2442,
+      "demand_kg": 90
+    },
+    {
+      "stop_id": "ST-11",
+      "customer": "Zamalek Boutique Service",
+      "lat": 30.0609,
+      "lon": 31.2197,
+      "demand_kg": 75
+    },
+    {
+      "stop_id": "ST-12",
+      "customer": "Mokattam Ridge Fuel Plaza",
+      "lat": 30.0156,
+      "lon": 31.2981,
+      "demand_kg": 100
+    }
+  ]
+}

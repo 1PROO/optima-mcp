@@ -1,0 +1,11 @@
+staff_id,full_name,skills,max_shifts,shift_cost,unavailable_days
+EMP-01,Karim Hassan,"Supervisor;Cashier;PumpTech",5,120.00,
+EMP-02,Nadia Mansour,"Supervisor;Cashier",5,115.00,Day_7
+EMP-03,Tarek Adel,"Supervisor;LubricantTech",5,125.00,Day_1
+EMP-04,Omar Farouk,"PumpTech;LubricantTech",5,95.00,
+EMP-05,Salma Ibrahim,"Cashier;PumpTech",5,90.00,Day_5
+EMP-06,Youssef Nabil,"PumpTech;LubricantTech",5,95.00,Day_6
+EMP-07,Heba Mostafa,"Cashier",5,85.00,
+EMP-08,Mahmoud Zaki,"PumpTech;Cashier",5,92.00,Day_2
+EMP-09,Dina Samir,"Supervisor;LubricantTech;Cashier",5,98.00,
+EMP-10,Ramy Khalil,"Supervisor;PumpTech;LubricantTech",5,130.00,Day_4

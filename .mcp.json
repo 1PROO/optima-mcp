@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "optima-mcp": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/1PROO/optima-mcp",
+        "optima-mcp"
+      ]
+    }
+  }
+}
